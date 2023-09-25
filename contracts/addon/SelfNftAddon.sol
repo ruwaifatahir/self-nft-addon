@@ -24,36 +24,6 @@ contract SelfNftAddon is
     using SafeERC20 for IERC20;
 
     /**
-     * Network: Sepolia
-     * We are assuming Synthetix(SNX) as $SELF price feed
-     * Aggregators:
-     * SELF/USD: 0xc0F82A46033b8BdBA4Bb0B0e28Bc2006F64355bC
-     * USDC/USD: 0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E
-     * ETH/USD: 0x694AA1769357215DE4FAC081bf1f309aDC325306
-     * BTC/USD: 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
-     *
-     
-     *
-     * Future tasks:
-     * Add agents functionality                 Done
-     * Write better error and function names    Done
-     * Follow solidity style guide              Done
-     * Add natspec documentation                Done
-     * Add comments                             Done
-     * replace require with custom errors       Done
-     * Add detailed description for contract    Done
-     * Detailed review before testing           Done
-     * Test the remaining functions             Done
-     * Test on bsc testnet with live chainlink contracts
-     * Detailed final review
-     * Slither
-     * Ask jawsome for review
-     * Integrate on frontend
-     * Test with team
-     * Delvier
-     */
-
-    /**
      * The SelfNftMultitokenAddon smart contract serves as an extension to the SelfNft.sol contract, enhancing its capabilities by allowing users to register names as Non-Fungible Tokens (NFTs) using multiple types of tokens, rather than being restricted to a single token. This is made possible through real-time price feeds provided by Chainlink oracles, which ensure that the cost of name registration is accurately calculated in the chosen token at the time of purchase. It also incorporates a server-maintained $SELF price to ensure accurate and up-to-date pricing for name registrations.
      *
      * 
@@ -668,5 +638,4 @@ contract SelfNftAddon is
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    // Test functions and should be removed before main deployment
 }
