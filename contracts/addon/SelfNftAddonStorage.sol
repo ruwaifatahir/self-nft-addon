@@ -49,7 +49,12 @@ contract SelfNftAddonStorage {
     mapping(address => Agent) public agents;
 
     //=================Events======================
-    event NameRegistered(address indexed owner, string name, uint tokenId);
+    event NameRegistered(
+        address indexed owner,
+        string name,
+        address indexed agent,
+        address indexed paymentToken
+    );
     event CollectedTokensForwarded(address indexed receiver, uint256 amount);
     event SelfNftUpdated(address indexed newSelfNft);
     event PaymentTokenUpdated(address indexed newBuyToken);

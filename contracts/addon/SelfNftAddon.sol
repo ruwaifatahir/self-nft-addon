@@ -24,6 +24,18 @@ contract SelfNftAddon is
     using SafeERC20 for IERC20;
 
     /**
+     * @title SelfNft
+     * @author Self dev team
+     * @custom:version v2.3.1
+     * @custom:date 28 sept 2023
+
+    ------------v2.3.1 changes------------
+    - update NameRegistered event to include agent and payment token address
+    - update removeChainlinkPricefeed to transfer the collected tokens of the respective price feed to the owner.
+    
+     */
+
+    /**
      * The SelfNftMultitokenAddon smart contract serves as an extension to the SelfNft.sol contract, enhancing its capabilities by allowing users to register names as Non-Fungible Tokens (NFTs) using multiple types of tokens, rather than being restricted to a single token. This is made possible through real-time price feeds provided by Chainlink oracles, which ensure that the cost of name registration is accurately calculated in the chosen token at the time of purchase. It also incorporates a server-maintained $SELF price to ensure accurate and up-to-date pricing for name registrations.
      *
      * 
@@ -127,7 +139,7 @@ contract SelfNftAddon is
         selfNft.safeTransferFrom(address(this), msg.sender, _hashString(_name));
 
         // Emit an event to log the successful name registration
-        emit NameRegistered(msg.sender, _name, _hashString(_name));
+        emit NameRegistered(msg.sender, _name, _agentAddress, _paymentToken);
 
         return true;
     }
@@ -415,6 +427,13 @@ contract SelfNftAddon is
         // Remove the Chainlink price feed for the payment token
         chainlinkPriceFeeds[_paymentToken].paymentToken = address(0);
 
+        // Transfer the collected tokens to the contract owner if any
+        uint _collectedTokens = chainlinkPriceFeeds[_paymentToken]
+            .collectedTokens;
+
+        if (_collectedTokens > 0)
+            IERC20(_paymentToken).safeTransfer(msg.sender, _collectedTokens);
+
         // Emit an event to log the removal of the Chainlink price feed
         emit ChainlinkPriceFeedRemoved(_paymentToken);
     }
@@ -637,5 +656,4 @@ contract SelfNftAddon is
     ) external pure returns (bytes4) {
         return IERC721Receiver.onERC721Received.selector;
     }
-
 }
