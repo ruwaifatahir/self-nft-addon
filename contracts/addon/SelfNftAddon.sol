@@ -32,6 +32,7 @@ contract SelfNftAddon is
     ------------v2.3.1 changes------------
     - update NameRegistered event to include agent and payment token address
     - update removeChainlinkPricefeed to transfer the collected tokens of the respective price feed to the owner.
+    - imporved UX in _handleAgentCommission
     
      */
 
@@ -562,12 +563,12 @@ contract SelfNftAddon is
         address _paymentToken
     ) internal returns (uint256) {
         // Check if an agent address is provided
-        if (_agentAddress == address(0)) {
+        if (
+            _agentAddress == address(0) ||
+            agents[_agentAddress].commissionRate == 0
+        ) {
             return _price; // No agent, return the original price
         }
-
-        // Validate the agent's commission rate
-        if (agents[_agentAddress].commissionRate == 0) revert NotAnAgent();
 
         // Fetch the agent's details
         Agent storage agent = agents[_agentAddress];
