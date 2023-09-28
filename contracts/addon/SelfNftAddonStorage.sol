@@ -6,49 +6,34 @@ import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
 import "../interfaces/ISelfNft.sol";
 
 contract SelfNftAddonStorage {
-    //=================Datatypes===================
-
-    /// @dev This struct represents a payment token type within the contract
     struct PaymentToken {
-        AggregatorV3Interface priceFeed; // The Chainlink price feed aggregator contract for real-time price updates
-        address paymentToken; // The ERC20 token address used for payments
-        uint8 decimals; // The number of decimals for the payment token, for precision
-        uint256 collectedTokens; // The total amount of this token collected for payments
+        AggregatorV3Interface priceFeed;
+        address paymentToken;
+        uint8 decimals;
+        uint256 collectedTokens;
     }
 
-    /// @dev This struct represents an Agent type within the contract.
     struct Agent {
-        uint256 commissionRate; // The commission rate for the agent, as a percentage (0-100) and it is multiplied by 10^6
-        mapping(address => uint256) earnedCommissions; // Mapping of commissions earned by the agent for each payment token.
+        uint256 commissionRate;
+        mapping(address => uint256) earnedCommissions;
     }
 
-    //=================State=======================
-
-    // Constant to store the number of decimals used by Chainlink oracles
     uint8 public constant CHAINLINK_DECIMALS = 8;
 
-    // Constant to store the number of decimals used for pricing the Self NFT
     uint8 public constant SELF_NFT_PRICE_DECIMALS = 6;
 
-    // Interface for interacting with the SelfNft contract
     ISelfNft public selfNft;
 
-    // Interface for interacting with the SelfToken ERC20 contract
     IERC20 public selfToken;
 
-    // Variable to store the latest price of $SELF
     uint public selfPrice;
 
-    // The total amount of $SELF tokens deposited
     uint public depositedSelfTokens;
 
-    // Mapping to keep track of payment token addresses and their corresponding Chainlink price feeds. Note: Key of this mapping is payment token address not the price feed address
     mapping(address => PaymentToken) public chainlinkPriceFeeds;
 
-    // Mapping to keep track of agents and their details
     mapping(address => Agent) public agents;
 
-    //=================Events======================
     event NameRegistered(
         address indexed owner,
         string name,
@@ -82,7 +67,6 @@ contract SelfNftAddonStorage {
 
     event ChainlinkPriceFeedRemoved(address indexed paymentToken);
 
-    //=================Errors======================
     error ZeroAddressError();
     error InvalidCommissionRate();
     error InvalidCommissionAmount();
