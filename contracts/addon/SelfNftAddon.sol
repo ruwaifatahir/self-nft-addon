@@ -428,12 +428,14 @@ contract SelfNftAddon is
         // Remove the Chainlink price feed for the payment token
         chainlinkPriceFeeds[_paymentToken].paymentToken = address(0);
 
-        // Transfer the collected tokens to the contract owner if any
+        // Transfer the collected tokens to the contract owner if any and reset collected tokens
         uint _collectedTokens = chainlinkPriceFeeds[_paymentToken]
             .collectedTokens;
 
-        if (_collectedTokens > 0)
+        if (_collectedTokens > 0) {
+            chainlinkPriceFeeds[_paymentToken].collectedTokens = 0;
             IERC20(_paymentToken).safeTransfer(msg.sender, _collectedTokens);
+        }
 
         // Emit an event to log the removal of the Chainlink price feed
         emit ChainlinkPriceFeedRemoved(_paymentToken);

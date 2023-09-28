@@ -912,6 +912,30 @@ describe.only("SelfNftMultitokenAddon", () => {
         addon.removeChainlinkPricefeed(usdt.address)
       ).changeTokenBalance(usdt, owner, parse(price, 6));
     });
+
+    it("should reset the collectedTokens var", async () => {
+      // Arrange: Load fixture
+      const { addon, usdt, usdtPricefeedMock, owner, selfNft } =
+        await loadFixture(deployAddonSuite);
+
+      await usdt.approve(addon.address, parse("1000000", 6));
+
+      await addon.registerName("ruwaifa", usdt.address, ZERO_ADDRESS);
+
+      const price = await calculateNamePrice(
+        selfNft,
+        "ruwaifa",
+        SELF_PRICE,
+        USDT_PRICE
+      );
+
+      // Act & Assert: Remove a chainlink pricefeed and verify that the token balance of the owner changes by the collected amount
+      await addon.removeChainlinkPricefeed(usdt.address);
+
+      expect(
+        (await addon.chainlinkPriceFeeds(usdt.address)).collectedTokens
+      ).to.equal(0);
+    });
     it("should emit the ChainlinkPriceFeedRemoved event", async () => {
       // Arrange: Load fixture
       const { addon, usdt, usdtPricefeedMock } = await loadFixture(
