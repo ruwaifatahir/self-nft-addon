@@ -63,16 +63,31 @@ describe.only("SelfNftMultitokenAddon", () => {
         ).to.be.revertedWithCustomError(addon, "InsufficientSelfTokens");
       });
 
-      it("should revert if non-agent tries to register a name", async () => {
-        // Arrange: Load fixture
-        const { addon, usdt, otherAccount1 } = await loadFixture(
+      it("should let the caller register the name even provided address is not an agent and not cut any commsion", async () => {
+        // Arrange
+        const { addon, usdt, selfNft, owner, otherAccount } = await loadFixture(
           deployAddonSuite
         );
+        await usdt.approve(addon.address, parse("1000000", 6));
 
-        // Act & Assert: Attempt to register a name using a non-agent account and expect it to revert with a custom error
-        await expect(
-          addon.registerName("ruwai", usdt.address, otherAccount1.address)
-        ).to.be.revertedWithCustomError(addon, "NotAnAgent");
+        // Act
+        await addon.registerName("ruwaifa", usdt.address, otherAccount.address);
+
+        // Assert
+        const price = await calculateNamePrice(
+          selfNft,
+          "ruwaifa",
+          SELF_PRICE,
+          USDT_PRICE
+        );
+        const collectedTokens = await getTotalCollected(addon, usdt);
+
+        // Assert: Verify that the total collected tokens match the expected price
+        expect(collectedTokens).to.equal(parse(price, 6));
+
+        const nameId = keccak256(toUtf8Bytes("ruwaifa"));
+        const ownerOf = await selfNft.ownerOf(nameId);
+        expect(ownerOf).to.equal(owner.address);
       });
 
       it("should revert if $SELF token price is invalid", async () => {
@@ -876,6 +891,27 @@ describe.only("SelfNftMultitokenAddon", () => {
       ).to.equal(ZERO_ADDRESS);
     });
 
+    it("should transfer the collected token of the price feed to the owner", async () => {
+      // Arrange: Load fixture
+      const { addon, usdt, usdtPricefeedMock, owner, selfNft } =
+        await loadFixture(deployAddonSuite);
+
+      await usdt.approve(addon.address, parse("1000000", 6));
+
+      await addon.registerName("ruwaifa", usdt.address, ZERO_ADDRESS);
+
+      const price = await calculateNamePrice(
+        selfNft,
+        "ruwaifa",
+        SELF_PRICE,
+        USDT_PRICE
+      );
+
+      // Act & Assert: Remove a chainlink pricefeed and verify that the token balance of the owner changes by the collected amount
+      await expect(
+        addon.removeChainlinkPricefeed(usdt.address)
+      ).changeTokenBalance(usdt, owner, parse(price, 6));
+    });
     it("should emit the ChainlinkPriceFeedRemoved event", async () => {
       // Arrange: Load fixture
       const { addon, usdt, usdtPricefeedMock } = await loadFixture(
