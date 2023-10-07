@@ -29,12 +29,18 @@ const config: HardhatUserConfig = {
       chainId: 56,
       accounts: { mnemonic: process.env.MNEMONIC },
     },
+    sepolia: {
+      url: process.env.SEPOLIA_URL,
+      chainId: 11155111,
+      accounts: { mnemonic: process.env.MNEMONIC },
+    },
   },
 
   etherscan: {
     apiKey: {
       bscTestnet: process.env.BSC_TESTNET_API_KEY!,
       bsc: process.env.BSC_API_KEY!,
+      sepolia: process.env.SEPOLIA_API_KEY!,
     },
   },
 };

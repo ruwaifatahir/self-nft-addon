@@ -42,6 +42,9 @@ contract SelfNftAddonStorage {
     // The total amount of $SELF tokens deposited
     uint public depositedSelfTokens;
 
+    //
+    uint public collectedSelf;
+
     // Mapping to keep track of payment token addresses and their corresponding Chainlink price feeds. Note: Key of this mapping is payment token address not the price feed address
     mapping(address => PaymentToken) public chainlinkPriceFeeds;
 
@@ -54,6 +57,12 @@ contract SelfNftAddonStorage {
         string name,
         address indexed agent,
         address indexed paymentToken
+    );
+
+    event NameRegisteredSelf(
+        address indexed owner,
+        string name,
+        address indexed agent
     );
     event CollectedTokensForwarded(address indexed receiver, uint256 amount);
     event SelfNftUpdated(address indexed newSelfNft);

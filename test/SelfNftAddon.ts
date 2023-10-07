@@ -17,7 +17,124 @@ import {
 import { calculateNamePrice, getTotalCollected } from "./utils/ContractHelpers";
 
 describe.only("SelfNftMultitokenAddon", () => {
-  describe("registerName", () => {
+  describe.only("registerName(string, address)", () => {
+    describe("Checks", () => {
+      it("should revert if price of name is invalid", async () => {
+        // Arrange
+        const { addon, selfNft } = await loadFixture(deployAddonSuite);
+        await selfNft.setPrice(7, 0);
+
+        // Act
+        const action = async () => {
+          return addon.registerNameSelf("ruwaifa", ZERO_ADDRESS);
+        };
+
+        // Assert
+        await expect(action()).to.be.revertedWithCustomError(
+          addon,
+          "InvlaidPrice"
+        );
+      });
+      it("should revert if there are not enough self tokens", async () => {
+        // Arrange
+        const { addon, selfNft } = await loadFixture(deployAddonSuite);
+        await addon.withdrawSelfTokens();
+
+        // Act
+        const action = async () => {
+          return addon.registerNameSelf("ruwaifa", ZERO_ADDRESS);
+        };
+
+        // Assert
+        await expect(action()).to.be.revertedWithCustomError(
+          addon,
+          "InsufficientSelfTokens"
+        );
+      });
+    });
+
+    describe("Effects", () => {
+      it("should update the agent commision", async () => {
+        // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
+        const { addon, selfToken, selfNft, otherAccount } = await loadFixture(
+          deployAddonSuite
+        );
+        await selfToken.approve(addon.address, parse("1000000", 18));
+        await addon.addAgent(otherAccount.address, parse("20", 6));
+        await addon.registerNameSelf("ruwaifa", otherAccount.address);
+
+        // Act: Calculate the expected price and agent commission, then get the earned commission
+        const price = 1000;
+        const agentCommision = ((price * 20) / 100).toFixed(1);
+        const earnedCommision = await addon.getEarnedCommision(
+          otherAccount.address,
+          selfToken.address
+        );
+
+        // Assert: Verify that the earned commission matches the expected commission
+        expect(format(earnedCommision, 18)).to.equal(agentCommision);
+      });
+
+      it("should update the collected self", async () => {
+        // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
+        const { addon, selfToken, otherAccount } = await loadFixture(
+          deployAddonSuite
+        );
+        await selfToken.approve(addon.address, parse("1000000", 18));
+        await addon.addAgent(otherAccount.address, parse("20", 6));
+        await addon.registerNameSelf("ruwaifa", otherAccount.address);
+
+        // Act: Calculate the expected price and agent commission, then get the earned commission
+        const price = 1000;
+        const agentCommision = Number((price * 20) / 100);
+        const totalCollected = price - agentCommision;
+
+        const collectedSelf = await addon.collectedSelf();
+
+        // Assert: Verify that the earned commission matches the expected commission
+        expect(Number(format(collectedSelf, 18)).toFixed(0)).to.equal(
+          totalCollected.toString()
+        );
+      });
+    });
+
+    describe("Interactions", () => {
+      it("should transfer name(NFT) to caller", async () => {
+        // Arrange: Load fixture, approve USDT tokens, and register a name
+        const { addon, selfToken, selfNft, owner } = await loadFixture(
+          deployAddonSuite
+        );
+        await selfToken.approve(addon.address, parse("1000000", 18));
+        await addon.registerNameSelf("ruwaifa", ZERO_ADDRESS);
+
+        // Act: Calculate the name ID and retrieve the owner of the name
+        const nameId = keccak256(toUtf8Bytes("ruwaifa"));
+        const ownerOf = await selfNft.ownerOf(nameId);
+
+        // Assert: Verify that the owner of the name is the caller
+        expect(ownerOf).to.equal(owner.address);
+      });
+    });
+
+    it.only("should register name with no agent", async () => {
+      // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
+      const { addon, selfToken } = await loadFixture(deployAddonSuite);
+      await selfToken.approve(addon.address, parse("1000000", 18));
+      await addon.registerNameSelf("ruwaifa", ZERO_ADDRESS);
+
+      // Act: Calculate the expected price and agent commission, then get the earned commission
+
+      const totalCollected = 1000;
+
+      const collectedSelf = await addon.collectedSelf();
+
+      // Assert: Verify that the earned commission matches the expected commission
+      expect(Number(format(collectedSelf, 18)).toFixed(0)).to.equal(
+        totalCollected.toString()
+      );
+    });
+  });
+  describe("registerName(string, address, address)", () => {
     describe("Checks", () => {
       it("should revert if payment token is not supported", async () => {
         // Arrange

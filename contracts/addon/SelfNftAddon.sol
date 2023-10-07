@@ -26,13 +26,18 @@ contract SelfNftAddon is
     /**
      * @title SelfNft
      * @author Self dev team
-     * @custom:version v2.3.1
+     * @custom:version v2.3.2
      * @custom:date 28 sept 2023
 
     ------------v2.3.1 changes------------
     - update NameRegistered event to include agent and payment token address
     - update removeChainlinkPricefeed to transfer the collected tokens of the respective price feed to the owner.
     - imporved UX in _handleAgentCommission
+
+    ------------v2.3.2 changes------------
+    - add registerNameSelf() function
+    - add NameRegisteredSelf event
+    - add collectedSelf var
     
      */
 
@@ -77,6 +82,48 @@ contract SelfNftAddon is
 
         selfToken = IERC20(_selfToken);
         selfNft = ISelfNft(_selfNft);
+    }
+
+    function registerNameSelf(
+        string calldata _name,
+        address _agentAddress
+    ) external whenNotPaused nonReentrant returns (bool) {
+        ///@dev get the price of the name
+        uint256 price = selfNft.getPrice(_name);
+
+        // priceInSelf is in 10^6 so we are upscaling it to 10 **18
+        price = price * (10 ** (18 - SELF_NFT_PRICE_DECIMALS));
+
+        ///@dev checks if the name has a valid price
+        if (price == 0) revert InvlaidPrice();
+
+        // Check for sufficient deposited SELF tokens
+        if (depositedSelfTokens < price)
+            revert InsufficientSelfTokens(depositedSelfTokens, price);
+
+        // Handle agent commission if applicable
+        uint256 netPrice = _handleAgentCommission(
+            _agentAddress,
+            price,
+            address(selfToken)
+        );
+
+        // Update the total collected tokens for the specified buyToken
+        collectedSelf += netPrice;
+
+        ///@dev transfer the self from msg.sender to this contract
+        selfToken.safeTransferFrom(msg.sender, address(this), price);
+
+        // Register the name in the selfNft contract
+        selfNft.registerName(_name);
+
+        // Transfer the corresponding NFT to the user
+        selfNft.safeTransferFrom(address(this), msg.sender, _hashString(_name));
+
+        // Emit an event to log the successful name registration
+        emit NameRegisteredSelf(msg.sender, _name, _agentAddress);
+
+        return true;
     }
 
     /**
