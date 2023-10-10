@@ -18,7 +18,6 @@ import { calculateNamePrice, getTotalCollected } from "./utils/ContractHelpers";
 
 describe.only("SelfNftMultitokenAddon", () => {
   describe("registerName(string, address)", () => {
-    
     describe("Checks", () => {
       it("should revert if price of name is invalid", async () => {
         // Arrange
@@ -96,6 +95,24 @@ describe.only("SelfNftMultitokenAddon", () => {
         expect(Number(format(collectedSelf, 18)).toFixed(0)).to.equal(
           totalCollected.toString()
         );
+      });
+
+      it("should decrease depositedSelfTokens after registration", async () => {
+        // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
+        const { addon, selfToken, otherAccount } = await loadFixture(
+          deployAddonSuite
+        );
+        await selfToken.approve(addon.address, parse("1000000", 18));
+        await addon.addAgent(otherAccount.address, parse("20", 6));
+        await addon.registerNameSelf("ruwaifa", otherAccount.address);
+
+        // Act: Calculate the expected price and agent commission, then get the earned commission
+        const afterDepositedSelfTokens = parse("999000");
+
+        const depositedSelfTokens = await addon.depositedSelfTokens();
+
+        // Assert: Verify that the earned commission matches the expected commission
+        expect(depositedSelfTokens).to.equal(afterDepositedSelfTokens);
       });
     });
 
@@ -313,6 +330,23 @@ describe.only("SelfNftMultitokenAddon", () => {
 
         // Assert: Verify that the total collected tokens match the expected price minus the agent commission
         expect(format(collectedTokens, 6)).to.equal(calCollectedTokens);
+      });
+      it("should update depositedSelfTokens", async () => {
+        // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
+        const { addon, usdt, selfNft, otherAccount } = await loadFixture(
+          deployAddonSuite
+        );
+        await usdt.approve(addon.address, parse("1000000", 6));
+        await addon.addAgent(otherAccount.address, parse("20", 6));
+        await addon.registerName("ruwaifa", usdt.address, otherAccount.address);
+
+        // Act: Calculate the expected price and agent commission, then get the earned commission
+        const afterDepositedSelfTokens = parse("999000");
+
+        const depositedSelfTokens = await addon.depositedSelfTokens();
+
+        // Assert: Verify that the earned commission matches the expected commission
+        expect(depositedSelfTokens).to.equal(afterDepositedSelfTokens);
       });
     });
 
