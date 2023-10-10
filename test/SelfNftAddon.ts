@@ -17,7 +17,8 @@ import {
 import { calculateNamePrice, getTotalCollected } from "./utils/ContractHelpers";
 
 describe.only("SelfNftMultitokenAddon", () => {
-  describe.only("registerName(string, address)", () => {
+  describe("registerName(string, address)", () => {
+    
     describe("Checks", () => {
       it("should revert if price of name is invalid", async () => {
         // Arrange
@@ -116,7 +117,7 @@ describe.only("SelfNftMultitokenAddon", () => {
       });
     });
 
-    it.only("should register name with no agent", async () => {
+    it("should register name with no agent", async () => {
       // Arrange: Load fixture, approve USDT tokens, add an agent, and register a name
       const { addon, selfToken } = await loadFixture(deployAddonSuite);
       await selfToken.approve(addon.address, parse("1000000", 18));
