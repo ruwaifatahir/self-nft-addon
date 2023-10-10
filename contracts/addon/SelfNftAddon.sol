@@ -26,8 +26,8 @@ contract SelfNftAddon is
     /**
      * @title SelfNft
      * @author Self dev team
-     * @custom:version v2.3.2
-     * @custom:date 28 sept 2023
+     * @custom:version v2.3.3
+     * @custom:date 11 oct 2023
 
     ------------v2.3.1 changes------------
     - update NameRegistered event to include agent and payment token address
@@ -38,6 +38,13 @@ contract SelfNftAddon is
     - add registerNameSelf() function
     - add NameRegisteredSelf event
     - add collectedSelf var
+
+    ------------v2.3.3 changes------------
+
+    - add depositedSelfTokens -= price; in registerNameSelf()
+    - add depositedSelfTokens -= priceInSelf; in registerName()
+
+
     
      */
 
@@ -108,6 +115,8 @@ contract SelfNftAddon is
             address(selfToken)
         );
 
+        depositedSelfTokens -= price;
+
         // Update the total collected tokens for the specified buyToken
         collectedSelf += netPrice;
 
@@ -169,6 +178,8 @@ contract SelfNftAddon is
             priceInPaymentTkn,
             _paymentToken
         );
+
+        depositedSelfTokens -= priceInSelf;
 
         // Update the total collected tokens for the specified buyToken
         chainlinkPriceFeeds[_paymentToken].collectedTokens += netPrice;
